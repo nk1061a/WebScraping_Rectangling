@@ -1,0 +1,177 @@
+---
+title: "Untitled"
+author: "STAT627_HW#4"
+date: "11/11/2020"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(readr)
+library(dplyr)
+library(ISLR)
+library(class)
+library(MASS)
+library(glmnet)
+library(boot)
+library(tree)
+library(randomForest)
+library(e1071)
+```
+
+```{r}
+library(ISLR);
+attach(OJ);
+?OJ
+head(OJ)
+```
+
+
+#Ques3
+#(a) 
+#Training set = 800, Total = 1070, 
+#Testing set = 1070-800 = 270
+```{r}
+dim(OJ)
+?OJ
+```
+
+#Split the data 
+#Division percentage: 74.77(Training)800/1070 and 25.23(Testing)270/1070
+```{r}
+set.seed(1)
+n<-length(Purchase)
+Z<-sample(n, n/1.3375)
+Purchase.Training<- OJ[Z,]
+Purchase.Testing<-  OJ[-Z,]
+```
+
+
+#(b) [Could not find variable "Buy" in the dataset]
+#Summary Output: 
+#Lists 5 variables that are used as internal nodes in the tree
+#Number of terminal nodes are 9
+#Misclassification/Training error rate 0.1588 or 15.88%
+#The error is not too large but not insignificant either 
+```{r}
+tree.Purchase <- tree(as.factor(Purchase) ~ ., data=Purchase.Training)
+summary(tree.Purchase)
+```
+
+
+#(C) Randomly picked Terminal node as 9
+# 9) LoyalCH > 0.0356415  118  116.40 MM ( 0.19492 0.80508)
+#Variable "LoyalCH" > 0.0356415
+#Terminal nodes has 118 observations in that branch 
+#Deviance is 116.40
+#%age of observations in this branch which take on CH is 0.19492 or 19.49%
+#80.5% of observations in this branch take in values MM
+```{r}
+tree.Purchase
+```
+
+#(d)
+#The variable:"LoyalCH" has the maximum number of splits 
+#If the value is less than 0.5036 then purchase outcome might be MM
+#PriceDiff < 0.05 can lead to a diff outcome. 
+
+#LoyalCH > 0.5036 and If loyalCH < 0.764572, CH might be the outcome.
+```{r}
+plot(tree.Purchase)
+text(tree.Purchase)
+```
+
+#(e) Using type="class" to return actual class prediction 
+```{r}
+Pur_predict <- predict(tree.Purchase, Purchase.Testing, type="class")
+table(Purchase.Testing$Purchase, Pur_predict)
+```
+
+#Correct predictions in the test data: (160+64)/270 = 82.96%
+#Test Error Rate is about 17.04%; 1-(160+64)/270 = 0.1703704
+```{r}
+mean(Purchase.Testing$Purchase == Pur_predict)
+mean(Purchase.Testing$Purchase != Pur_predict)
+```
+
+#(f) "FUN = prune.misclass" using classification error rate for cross 
+#validation and pruning 
+#Tree with 7 terminal nodes, results 
+#in the lowest cross-validation error rate. 
+```{r}
+cv_pur <- cv.tree(tree.Purchase, FUN = prune.misclass)
+cv_pur
+```
+
+#(g)
+```{r}
+plot(cv_pur$size, cv_pur$dev, type = "b", xlab = "Tree size", ylab = "Cross Validation Error")
+
+size.min <- cv_pur$size[which.min(cv_pur$dev)]
+size.min
+```
+
+#(h)
+#Tree size of 7 corresponds to the lowest cross-validated classification error rate
+
+
+#(i)
+```{r}
+pruned.tree <- prune.tree(tree.Purchase, best = 7)
+pruned.tree
+
+plot(pruned.tree)
+text(pruned.tree, pretty = 0)
+```
+
+
+#(j)
+#The misclassification error: 0.1625 versus 0.1588
+#Training Error rate for the pruned tree is higher
+#Terminal nodes for unpruned tree is > than pruned
+# i.e. 9 > 7
+```{r}
+summary(pruned.tree)
+```
+
+```{r}
+summary(tree.Purchase)
+```
+
+#(k)
+```{r}
+Pru_predict <- predict(pruned.tree, Purchase.Testing, type='class')
+table(Purchase.Testing$Purchase, Pru_predict)
+```
+
+#Test Error rate for Pruned is lower i.e. 0.162963 < 0.1703704
+```{r}
+testError_tree <- mean(Purchase.Testing$Purchase != Pur_predict)
+testError_tree
+
+testError_pruned <- mean(Purchase.Testing$Purchase != Pru_predict)
+testError_pruned
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

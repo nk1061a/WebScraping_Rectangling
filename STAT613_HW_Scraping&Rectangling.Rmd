@@ -1,0 +1,113 @@
+---
+title: "Untitled"
+author: "STAT613_HW_Scraping&Rectangling"
+date: "3/19/2021"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(rvest)
+library(dplyr)
+library(tidyverse)
+library(repurrrsive)
+listviewer::jsonedit(gh_users)
+```
+
+#Ques 1):
+```{r}
+Link <- "https://www.imdb.com/list/ls091520106/"
+page = read_html(Link)
+Title = page%>% html_nodes(".lister-item-header a")%>%
+  html_text()
+Title
+```
+
+```{r}
+Link <- "https://www.imdb.com/list/ls091520106/"
+page = read_html(Link)
+Ratings = page%>% html_nodes(".ipl-rating-star.small .ipl-rating-star__rating")%>%
+  html_text()
+Ratings
+```
+
+```{r}
+Link <- "https://www.imdb.com/list/ls091520106/"
+page = read_html(Link)
+Runtime = page%>% html_nodes(".runtime")%>%
+  html_text()
+Runtime
+```
+#Converting Ratings as.numeric: 
+```{r}
+Ratings<- as.numeric(Ratings)
+```
+
+```{r}
+moviesdataframe = data.frame(Title,Ratings,Runtime)
+moviesdataframe
+```
+#Checking if it a tibble: 
+```{r}
+is_tibble(moviesdataframe)
+```
+
+```{r}
+as_tibble(moviesdataframe)
+```
+
+
+#Ques 2): 
+#a): 
+#Nested list typically is a list within a list, may be 
+#ordered or unordered. 
+#The objects/components within the list do not have 
+#to be of the same family (can be different types) e.g. 
+#integer, double, character string or even
+#a list (called nested list) within the original list.  
+
+#b): 
+#Raw data/information is given (without any
+#particular structure or order), information on all 
+#activities conducted for each of the 6 Git Hub Repositories:
+#E.g: urls on notifications, pull requests, fork, commits, 
+#profile id, name, homepage, subscriptions, issues etc.
+```{r}
+gh_repos
+```
+
+#c): 
+#This will add structure and improvement to the data. 
+#The information will now be displayed in a concise, more
+#organized format rather than being spread out. 
+#We now see 6 listed repos, each with components of 
+#30 and one with 26 subsets. However, the components cannot
+#be retrieved here.  
+```{r}
+repos <- tibble(repo = gh_repos)
+repos
+```
+
+#d): 
+#The following code now displays an array for each of
+#6 Repos, the subset data(characteristics) for each Repos, 
+#can now be retrieved by clicking the arrow. 
+#Each of the 6 arrows contain 30 and 26 subsets which 
+#further contain 68 elements of detailed data e.g. id etc.  
+```{r}
+listviewer::jsonedit(gh_repos)
+```
+
+
+#e):
+```{r}
+tibble(repo = gh_repos)%>%
+  unnest_auto(repo)%>%
+  unnest_auto(repo) -> new
+new
+```
+
+
